@@ -211,6 +211,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Specific files
 case01-S0-analytic2.nii.gz
 case01-S0-boundedls.nii.gz
 case01-S0-ls.nii.gz
