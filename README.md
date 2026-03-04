@@ -15,4 +15,4 @@ Repository for T2-relaxometry project
 ## t2_multiecho.py
 - Addresses second part of core task 2
 - Fit for S0 and T2
-- Need to fix fit for bounded T2 log least squares, currently produces HUGE values, on order of 1e18
+- Need to fix fit for bounded T2 log least squares, currently produces HUGE values, on order of 1e18 (√ Fixed)

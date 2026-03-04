@@ -72,26 +72,45 @@ def weighted_log_linear_ls(S, TEs, weights=None, mask=None):
     return S0, T2
 
 # Bounded linear LS (“NNLS-like” for single compartment)
-def bounded_log_ls(S, TEs, mask=None):
-    S = _guard_positive(S)
-    y = np.log(S) # (..., E)
-    X = np.vstack([np.ones_like(TEs), -TEs]).T # (E,2)
+def bounded_log_ls(S, TEs, mask=None, T2_min=5.0, T2_max=5000.0, eps=1e-6):
+    """
+    Bounded log-domain LS via per-voxel constrained least squares.
+    Model: log S = lnS0 + (-TE) * invT2, where invT2 = 1/T2 >= 0
+    Bounds enforce T2 in [T2_min, T2_max].
+    """
+    S = np.maximum(S, eps)
+    y = np.log(S)  # (..., E)
+    # Design matrix: [1, -TE]
+    X = np.vstack([np.ones_like(TEs), -TEs]).T  # (E,2)
     shp = y.shape[:-1]
-    lnS0 = np.full(shp, np.nan); neg_invT2 = np.full(shp, np.nan)
-
+    lnS0 = np.full(shp, np.nan)
+    invT2 = np.full(shp, np.nan)
+    invT2_min = 1.0 / T2_max   # lower bound (close to 0 but not 0)
+    invT2_max = 1.0 / T2_min   # upper bound
     it = np.ndindex(shp)
     for idx in it:
         if mask is not None and not mask[idx]:
             continue
         yi = y[idx]
-        def res(beta): return X @ beta - yi
-        sol = least_squares(res, x0=np.array([yi.max(), -1/100.0]),
-                            bounds=([-np.inf, -np.inf],[np.inf, 0.0])) # enforce -1/T2 <= 0
-        lnS0[idx], neg_invT2[idx] = sol.x
-    T2 = 1 / (-neg_invT2)
+        def res(beta):
+            return X @ beta - yi
+        # Initial guess:
+        # lnS0 ~ max(logS), invT2 ~ 1/100 ms^-1 (T2 ~100 ms)
+        x0 = np.array([float(yi.max()), 1.0 / 100.0])
+        sol = least_squares(
+            res,
+            x0=x0,
+            bounds=(
+                [-np.inf, invT2_min],
+                [ np.inf, invT2_max]
+            ),
+            max_nfev=200
+        )
+        lnS0[idx], invT2[idx] = sol.x
+    T2 = 1.0 / invT2
     S0 = np.exp(lnS0)
     return S0, T2
-
+    
 # Non-linear LS (signal domain, bounded)
 def nlls_single_voxel(S, TEs, bounds=([0, 5], [np.inf, 5000])):
     S = _guard_positive(S)
