@@ -1,0 +1,12 @@
+[project]
+name = "t2relaxometry-env"
+version = "0.2.0"
+description = "Env for T2 relaxometry coursework"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "numpy",
+  "matplotlib",
+  "nibabel",
+  "scipy>=1.17.1",
+]
