@@ -29,7 +29,7 @@ matplotlib
 
 * **`task2_preterm_mono_fit_all.py` (Parameter Fitting):** The core computational script. It reads multi-echo MRI NIfTI data and performs voxel-wise mono-exponential T2 fitting. It implements four distinct fitting methods for comparison: Least Square (ls), Weighted Least Squares (`weighted_ls`), Non-Negative Least Squares grid search (`nnls_grid`), and Non-Linear Least Squares (`nlls`). It outputs 3D parameter maps for T2, S0, and NRMSE. P.S. NRMSE quantifies the quality of fitting, lower NRMSE indicates higher fitting quality.
 
-**To run: **
+**To run:**
 
 python task2_preterm_mono_fit_all.py --data-root <DATA_ROOT> --output-root <OUTPUT_ROOT> --methods ls weighted_ls nnls_grid nlls
 
