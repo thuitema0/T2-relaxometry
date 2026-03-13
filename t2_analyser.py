@@ -451,48 +451,39 @@ class T2Analyser:
 
 
 if __name__ == "__main__":
-    root = "cmbi_data0"
-    case = "case01"
-    
-    data_path = f"{root}/{case}-qt2_reg.nii.gz"
-    te_path   = f"{root}/{case}-TEs.txt"
-    mask_path = f"{root}/{case}-mask.nii.gz"
+    root = "/Users/zhuyingjie/Desktop/COMP0018/T2-relaxometry/preterm_data"
+    case = "Epicure66734"
 
+    data_path = f"{root}/{case}-qt2_reg.nii.gz"
+    te_path   = f"{root}/TEs.txt"
+    mask_path = f"{root}/{case}-mask1.nii.gz"
+    seg_path  = f"{root}/{case}-qt2_seg1.nii.gz"
 
     analyser = T2Analyser(data_path, te_path, mask_path)
-    analyser.data[~analyser.mask] = 0 
+    analyser.data[~analyser.mask] = 0
 
     print(f"--- Processing {case} from {root} ---")
 
     analyser.fit_analytic(echo_indices=[0, 1])
-    analyser.fit_lls()        # Linear Least Squares
-    analyser.fit_wls()        # Weighted Linear Least Squares
-    analyser.fit_nnls()       # Non-Negative (Bounded) LS
-    analyser.fit_nlls_mono()  # Non-Linear (1-compartment)
-    
+    analyser.fit_lls()
+    analyser.fit_wls()
+    analyser.fit_nnls()
+    analyser.fit_nlls_mono()
 
-    
-    t2f_grid = [10, 25, 40]   # Low, Mid, High for Myelin water
-    t2s_grid = [60, 150, 400] # Low, Mid, High for Intra/Extra water & CSF
-    # t2f_grid = [40]   # Low, Mid, High for Myelin water
-    # t2s_grid = [400] # Low, Mid, High for Intra/Extra water & CSF
+    t2f_grid = [10, 25, 40]
+    t2s_grid = [60, 150, 400]
 
-    # Grid Search
     for gf in t2f_grid:
         for gs in t2s_grid:
             print(f"\n--- Testing Bi-Fit: Initial Fast={gf}ms, Slow={gs}ms ---")
             suffix = f"_F{gf}_S{gs}"
-            
             analyser.fit_nlls_bi(
-                t2_fast_guess=gf, 
-                t2_slow_guess=gs, 
+                t2_fast_guess=gf,
+                t2_slow_guess=gs,
                 suffix=suffix
             )
             analyser.calculate_maps_aic(bi_key=f"NLLS_Bi{suffix}")
 
-    seg_path = f"{root}/{case}-seg.nii.gz"
     analyser.roi_analysis(seg_path)
-
     analyser.show_results(save_prefix=f"{root}/{case}_grid")
     analyser.save_all(prefix=f"{root}/{case}")
-    
